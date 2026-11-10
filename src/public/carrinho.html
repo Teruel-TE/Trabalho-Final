@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Carrinho - VerdeLab</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Cabeçalho -->
+    <header class="header">
+        <div class="logo">🌿 <span>Verde</span>Lab</div>
+        <nav class="nav">
+            <a href="index.html#catalogo">Continuar a Comprar</a>
+            <div class="auth-buttons">
+                <a href="login.html" class="btn-secondary">Entrar</a>
+                <a href="cadastro.html" class="btn-primary">Cadastrar</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="cart-section">
+            <h2>🛒 Meu Carrinho de Compras</h2>
+            <div class="cart-wrapper">
+                <table class="cart-table">
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Preço</th>
+                            <th>Qtd.</th>
+                            <th>Subtotal</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cart-items">
+                        <tr>
+                            <td colspan="5" class="empty-cart-msg">O seu carrinho está vazio.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="cart-summary">
+                    <h3>Resumo da Encomenda</h3>
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span>R$ <span id="cart-subtotal">0,00</span></span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total:</span>
+                        <strong>R$ <span id="cart-total">0,00</span></strong>
+                    </div>
+                    <button id="btn-checkout" class="btn-success">Finalizar Compra</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 VerdeLab - Vidrarias e Equipamentos de Laboratório.</p>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
