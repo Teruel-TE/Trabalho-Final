@@ -35,3 +35,5 @@ A criação recebe `forma_pagamento` (`Pix`, `Cartão de crédito`,
 `Cartão de débito` ou `Dinheiro`). Vendas finalizadas não podem ser alteradas
 ou excluídas por essas rotas. A estrutura do banco deve estar atualizada com
 as tabelas de `db/db.sql`.
+
+Atualização
