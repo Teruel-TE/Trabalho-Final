@@ -1,26 +1,42 @@
 import * as vendaModel from "../models/vendaModel.js";
 
-export async function finalizar(req, res) {
-  const idCliente = Number(req.body.id_cliente);
-  const formaPagamento = req.body.forma_pagamento;
+const formasPagamento = [
+  "Pix",
+  "Cartão de crédito",
+  "Cartão de débito",
+  "Dinheiro",
+];
+
+function idPositivo(value) {
+  const id = Number(value);
+  return Number.isSafeInteger(id) && id > 0 ? id : null;
+}
+
+export async function criar(req, res) {
+  const formaPagamento = req.body?.forma_pagamento;
   if (
-    !Number.isSafeInteger(idCliente) ||
-    idCliente <= 0 ||
     typeof formaPagamento !== "string" ||
-    formaPagamento.trim().length === 0 ||
-    formaPagamento.trim().length > 50
+    !formasPagamento.includes(formaPagamento.trim())
   ) {
-    return res
-      .status(400)
-      .json({ erro: "Cliente ou forma de pagamento inválidos." });
+    return res.status(400).json({ erro: "Forma de pagamento inválida." });
   }
 
-  const venda = await vendaModel.finalizarCarrinho(
-    idCliente,
-    formaPagamento.trim(),
-  );
+  const venda = await vendaModel.criar(req.idCliente, formaPagamento.trim());
   return res.status(201).json({
     mensagem: "Venda finalizada e nota fiscal emitida.",
     ...venda,
   });
+}
+
+export async function listar(req, res) {
+  return res.json(await vendaModel.listar(req.idCliente));
+}
+
+export async function obter(req, res) {
+  const idVenda = idPositivo(req.params.id_venda);
+  if (!idVenda) return res.status(400).json({ erro: "ID da venda inválido." });
+
+  const venda = await vendaModel.buscarPorId(req.idCliente, idVenda);
+  if (!venda) return res.status(404).json({ erro: "Venda não encontrada." });
+  return res.json(venda);
 }

@@ -1,79 +1,115 @@
 import pool from "../db.js";
+import * as notaFiscalModel from "./nota_fiscalModel.js";
 
-export async function finalizarCarrinho(idCliente, formaPagamento) {
+function erro(status, mensagem) {
+  const error = new Error(mensagem);
+  error.status = status;
+  return error;
+}
+
+export async function criar(idCliente, formaPagamento) {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
 
-    const [carts] = await connection.execute(
-      `SELECT c.id_carrinho
-       FROM carrinho_de_compra c
-       WHERE c.id_cliente = ?
-         AND NOT EXISTS (
-           SELECT 1 FROM venda v WHERE v.id_carrinho = c.id_carrinho
-         )
-       ORDER BY c.id_carrinho DESC
+    const [clientes] = await connection.execute(
+      "SELECT id_cliente FROM cliente_usuario WHERE id_cliente = ? FOR UPDATE",
+      [idCliente],
+    );
+    if (clientes.length === 0) throw erro(404, "Cliente não encontrado.");
+
+    const [carrinhos] = await connection.execute(
+      `SELECT id_carrinho
+       FROM carrinho
+       WHERE id_cliente = ? AND status = 'ativo'
+       ORDER BY id_carrinho DESC
        LIMIT 1
        FOR UPDATE`,
       [idCliente],
     );
-    const idCarrinho = carts[0]?.id_carrinho;
-    if (!idCarrinho) {
-      const error = new Error("O cliente não possui um carrinho aberto.");
-      error.status = 404;
-      throw error;
-    }
+    const idCarrinho = carrinhos[0]?.id_carrinho;
+    if (!idCarrinho) throw erro(404, "O cliente não possui um carrinho ativo.");
 
-    const [items] = await connection.execute(
-      `SELECT ci.id_compra, ci.qtd_item,
-              c.valor_total_compra
-       FROM carrinho_has_compra ci
-       INNER JOIN compra c ON c.id_compra = ci.id_compra
-       WHERE ci.id_carrinho = ?
+    const [itens] = await connection.execute(
+      `SELECT ic.id_produto, ic.quantidade, ic.preco_unitario,
+              p.nome, p.estoque
+       FROM item_carrinho ic
+       INNER JOIN produto p ON p.id_produto = ic.id_produto
+       WHERE ic.id_carrinho = ?
+       ORDER BY ic.id_produto
        FOR UPDATE`,
       [idCarrinho],
     );
-    if (items.length === 0) {
-      const error = new Error("Adicione ao menos um item antes de finalizar.");
-      error.status = 400;
-      throw error;
+    if (itens.length === 0) {
+      throw erro(400, "Adicione ao menos um item antes de finalizar.");
     }
 
-    const totalCentavos = items.reduce(
-      (sum, item) =>
-        sum + Math.round(Number(item.valor_total_compra) * 100) * item.qtd_item,
+    const totalCentavos = itens.reduce(
+      (soma, item) =>
+        soma + Math.round(Number(item.preco_unitario) * 100) * item.quantidade,
       0,
     );
-    if (!Number.isSafeInteger(totalCentavos) || totalCentavos <= 0 || totalCentavos > 9999999999) {
-      const error = new Error("O valor total da venda é inválido.");
-      error.status = 400;
-      throw error;
+    if (
+      !Number.isSafeInteger(totalCentavos) ||
+      totalCentavos <= 0 ||
+      totalCentavos > 9999999999
+    ) {
+      throw erro(400, "O valor total da venda é inválido.");
     }
     const total = (totalCentavos / 100).toFixed(2);
 
-    const [sale] = await connection.execute(
-      `INSERT INTO venda
-         (id_cliente, id_carrinho, valor_total, forma_pagamento)
-       VALUES (?, ?, ?, ?)`,
-      [idCliente, idCarrinho, total, formaPagamento],
-    );
-
-    for (const item of items) {
-      await connection.execute(
-        `INSERT INTO venda_has_compra (id_venda, id_compra, qtd_item)
-         VALUES (?, ?, ?)`,
-        [sale.insertId, item.id_compra, item.qtd_item],
-      );
+    for (const item of itens) {
+      if (item.estoque < item.quantidade) {
+        throw erro(409, `Estoque insuficiente para ${item.nome}.`);
+      }
     }
 
-    const [invoice] = await connection.execute(
-      "INSERT INTO nota_fiscal (id_venda, valor_nota) VALUES (?, ?)",
-      [sale.insertId, total],
+    const [venda] = await connection.execute(
+      `INSERT INTO compra_venda
+         (id_cliente, valor_total, forma_pagamento, status)
+       VALUES (?, ?, ?, 'concluida')`,
+      [idCliente, total, formaPagamento],
+    );
+
+    for (const item of itens) {
+      await connection.execute(
+        `INSERT INTO item_compra
+           (id_compra, id_produto, quantidade, preco_unitario)
+         VALUES (?, ?, ?, ?)`,
+        [
+          venda.insertId,
+          item.id_produto,
+          item.quantidade,
+          item.preco_unitario,
+        ],
+      );
+      const [estoque] = await connection.execute(
+        `UPDATE produto
+         SET estoque = estoque - ?
+         WHERE id_produto = ? AND estoque >= ?`,
+        [item.quantidade, item.id_produto, item.quantidade],
+      );
+      if (estoque.affectedRows !== 1) {
+        throw erro(409, `Estoque insuficiente para ${item.nome}.`);
+      }
+    }
+
+    const notaFiscal = await notaFiscalModel.criar(connection, {
+      idCompra: venda.insertId,
+      idCliente,
+      valorTotal: total,
+    });
+    await connection.execute(
+      "UPDATE carrinho SET status = 'finalizado' WHERE id_carrinho = ?",
+      [idCarrinho],
     );
     await connection.commit();
+
     return {
-      id_venda: sale.insertId,
-      id_nota_fiscal: invoice.insertId,
+      id_compra: venda.insertId,
+      id_nota_fiscal: notaFiscal.idNotaFiscal,
+      numero_nota: notaFiscal.numeroNota,
+      chave_acesso: notaFiscal.chaveAcesso,
       valor_total: total,
     };
   } catch (error) {
@@ -82,4 +118,41 @@ export async function finalizarCarrinho(idCliente, formaPagamento) {
   } finally {
     connection.release();
   }
+}
+
+export async function listar(idCliente) {
+  const [rows] = await pool.execute(
+    `SELECT v.id_compra, v.data_compra, v.valor_total,
+            v.forma_pagamento, v.status, nf.numero_nota
+     FROM compra_venda v
+     LEFT JOIN nota_fiscal nf ON nf.id_compra = v.id_compra
+     WHERE v.id_cliente = ?
+     ORDER BY v.data_compra DESC, v.id_compra DESC`,
+    [idCliente],
+  );
+  return rows;
+}
+
+export async function buscarPorId(idCliente, idVenda) {
+  const [vendas] = await pool.execute(
+    `SELECT v.id_compra, v.id_cliente, v.data_compra, v.valor_total,
+            v.forma_pagamento, v.status, nf.numero_nota, nf.chave_acesso
+     FROM compra_venda v
+     LEFT JOIN nota_fiscal nf ON nf.id_compra = v.id_compra
+     WHERE v.id_cliente = ? AND v.id_compra = ?
+     LIMIT 1`,
+    [idCliente, idVenda],
+  );
+  if (!vendas[0]) return null;
+
+  const [itens] = await pool.execute(
+    `SELECT ic.id_produto, p.nome, ic.quantidade, ic.preco_unitario,
+            (ic.quantidade * ic.preco_unitario) AS subtotal
+     FROM item_compra ic
+     INNER JOIN produto p ON p.id_produto = ic.id_produto
+     WHERE ic.id_compra = ?
+     ORDER BY p.nome`,
+    [idVenda],
+  );
+  return { ...vendas[0], itens };
 }

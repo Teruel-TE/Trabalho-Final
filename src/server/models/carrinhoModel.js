@@ -1,98 +1,109 @@
 import pool from "../db.js";
 
-export async function buscarCarrinhoAberto(idCliente) {
-  const [rows] = await pool.execute(
-    `SELECT c.id_carrinho
-     FROM carrinho_de_compra c
-     WHERE c.id_cliente = ?
-       AND NOT EXISTS (
-         SELECT 1 FROM venda v WHERE v.id_carrinho = c.id_carrinho
-       )
-     ORDER BY c.id_carrinho DESC
-     LIMIT 1`,
+function erro(status, mensagem) {
+  const error = new Error(mensagem);
+  error.status = status;
+  return error;
+}
+
+async function obterCarrinhoAtivo(connection, idCliente, bloquear = false) {
+  const [rows] = await connection.execute(
+    `SELECT id_carrinho
+     FROM carrinho
+     WHERE id_cliente = ? AND status = 'ativo'
+     ORDER BY id_carrinho DESC
+     LIMIT 1${bloquear ? " FOR UPDATE" : ""}`,
     [idCliente],
   );
   return rows[0]?.id_carrinho ?? null;
 }
 
+async function bloquearCliente(connection, idCliente) {
+  const [rows] = await connection.execute(
+    "SELECT id_cliente FROM cliente_usuario WHERE id_cliente = ? FOR UPDATE",
+    [idCliente],
+  );
+  if (rows.length === 0) throw erro(404, "Cliente não encontrado.");
+}
+
+async function obterOuCriarCarrinhoAtivo(connection, idCliente) {
+  let idCarrinho = await obterCarrinhoAtivo(connection, idCliente, true);
+  if (idCarrinho) return idCarrinho;
+
+  const [result] = await connection.execute(
+    "INSERT INTO carrinho (id_cliente, status) VALUES (?, 'ativo')",
+    [idCliente],
+  );
+  return result.insertId;
+}
+
+export async function buscarCarrinhoAtivo(idCliente) {
+  return obterCarrinhoAtivo(pool, idCliente);
+}
+
 export async function listarItens(idCarrinho) {
   const [rows] = await pool.execute(
-    `SELECT ci.id_compra, ci.qtd_item AS quantidade, c.fornecedor,
-            c.data_compra, c.valor_total_compra AS valor_unitario,
-            (ci.qtd_item * c.valor_total_compra) AS subtotal
-     FROM carrinho_has_compra ci
-     INNER JOIN compra c ON c.id_compra = ci.id_compra
-     WHERE ci.id_carrinho = ?
-     ORDER BY ci.id_compra`,
+    `SELECT ic.id_produto, ic.quantidade, ic.preco_unitario,
+            p.nome, p.descricao, p.estoque,
+            (ic.quantidade * ic.preco_unitario) AS subtotal
+     FROM item_carrinho ic
+     INNER JOIN produto p ON p.id_produto = ic.id_produto
+     WHERE ic.id_carrinho = ?
+     ORDER BY p.nome`,
     [idCarrinho],
   );
   return rows;
 }
 
-export async function adicionarItem(idCliente, idCompra, quantidade) {
+export async function adicionarItem(idCliente, idProduto, quantidade) {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
-    const [clients] = await connection.execute(
-      "SELECT id_cliente FROM cliente WHERE id_cliente = ? FOR UPDATE",
-      [idCliente],
-    );
-    if (clients.length === 0) {
-      const error = new Error("Cliente não encontrado.");
-      error.status = 404;
-      throw error;
-    }
+    await bloquearCliente(connection, idCliente);
+    const idCarrinho = await obterOuCriarCarrinhoAtivo(connection, idCliente);
 
-    const [existingProducts] = await connection.execute(
-      "SELECT id_compra FROM compra WHERE id_compra = ? FOR UPDATE",
-      [idCompra],
+    const [products] = await connection.execute(
+      `SELECT id_produto, preco, estoque
+       FROM produto
+       WHERE id_produto = ?
+       FOR UPDATE`,
+      [idProduto],
     );
-    if (existingProducts.length === 0) {
-      const error = new Error("Produto não encontrado.");
-      error.status = 404;
-      throw error;
-    }
+    const produto = products[0];
+    if (!produto) throw erro(404, "Produto não encontrado.");
 
-    const [carts] = await connection.execute(
-      `SELECT c.id_carrinho
-       FROM carrinho_de_compra c
-       WHERE c.id_cliente = ?
-         AND NOT EXISTS (
-           SELECT 1 FROM venda v WHERE v.id_carrinho = c.id_carrinho
-         )
-       ORDER BY c.id_carrinho DESC
+    const [items] = await connection.execute(
+      `SELECT id_item_carrinho, quantidade
+       FROM item_carrinho
+       WHERE id_carrinho = ? AND id_produto = ?
        LIMIT 1
        FOR UPDATE`,
-      [idCliente],
+      [idCarrinho, idProduto],
     );
-    let idCarrinho = carts[0]?.id_carrinho;
-    if (!idCarrinho) {
-      const [newCart] = await connection.execute(
-        "INSERT INTO carrinho_de_compra (id_cliente) VALUES (?)",
-        [idCliente],
+    const quantidadeAtual = Number(items[0]?.quantidade ?? 0);
+    const novaQuantidade = quantidadeAtual + quantidade;
+    if (novaQuantidade > 1000) {
+      throw erro(400, "A quantidade máxima por produto é 1000.");
+    }
+    if (novaQuantidade > Number(produto.estoque)) {
+      throw erro(409, "Quantidade solicitada maior que o estoque disponível.");
+    }
+
+    if (items[0]) {
+      await connection.execute(
+        `UPDATE item_carrinho SET quantidade = ?
+         WHERE id_item_carrinho = ?`,
+        [novaQuantidade, items[0].id_item_carrinho],
       );
-      idCarrinho = newCart.insertId;
+    } else {
+      await connection.execute(
+        `INSERT INTO item_carrinho
+           (id_carrinho, id_produto, quantidade, preco_unitario)
+         VALUES (?, ?, ?, ?)`,
+        [idCarrinho, idProduto, quantidade, produto.preco],
+      );
     }
 
-    const [existingItems] = await connection.execute(
-      `SELECT qtd_item
-       FROM carrinho_has_compra
-       WHERE id_carrinho = ? AND id_compra = ?
-       FOR UPDATE`,
-      [idCarrinho, idCompra],
-    );
-    if ((existingItems[0]?.qtd_item ?? 0) + quantidade > 1000) {
-      const error = new Error("A quantidade máxima por produto é 1000.");
-      error.status = 400;
-      throw error;
-    }
-
-    await connection.execute(
-      `INSERT INTO carrinho_has_compra (id_carrinho, id_compra, qtd_item)
-       VALUES (?, ?, ?)
-       ON DUPLICATE KEY UPDATE qtd_item = qtd_item + VALUES(qtd_item)`,
-      [idCarrinho, idCompra, quantidade],
-    );
     await connection.commit();
     return idCarrinho;
   } catch (error) {
@@ -103,46 +114,37 @@ export async function adicionarItem(idCliente, idCompra, quantidade) {
   }
 }
 
-async function obterCarrinhoDoCliente(connection, idCliente) {
-  const [rows] = await connection.execute(
-    `SELECT c.id_carrinho
-     FROM carrinho_de_compra c
-     WHERE c.id_cliente = ?
-       AND NOT EXISTS (
-         SELECT 1 FROM venda v WHERE v.id_carrinho = c.id_carrinho
-       )
-     ORDER BY c.id_carrinho DESC
-     LIMIT 1
-     FOR UPDATE`,
-    [idCliente],
-  );
-  return rows[0]?.id_carrinho ?? null;
-}
-
-export async function alterarItem(idCliente, idCompra, quantidade) {
+export async function alterarItem(idCliente, idProduto, quantidade) {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
-    const idCarrinho = await obterCarrinhoDoCliente(connection, idCliente);
-    if (!idCarrinho) {
-      await connection.commit();
-      return idCompra === null;
-    }
-    const [result] = await connection.execute(
-      `SELECT 1
-       FROM carrinho_has_compra
-       WHERE id_carrinho = ? AND id_compra = ?`,
-      [idCarrinho, idCompra],
+    await bloquearCliente(connection, idCliente);
+    const idCarrinho = await obterCarrinhoAtivo(connection, idCliente, true);
+    if (!idCarrinho) throw erro(404, "Carrinho ativo não encontrado.");
+
+    const [items] = await connection.execute(
+      `SELECT id_item_carrinho
+       FROM item_carrinho
+       WHERE id_carrinho = ? AND id_produto = ?
+       LIMIT 1
+       FOR UPDATE`,
+      [idCarrinho, idProduto],
     );
-    if (result.length === 0) {
-      await connection.commit();
-      return false;
+    if (!items[0]) throw erro(404, "Produto não encontrado no carrinho.");
+
+    const [products] = await connection.execute(
+      "SELECT estoque FROM produto WHERE id_produto = ? FOR UPDATE",
+      [idProduto],
+    );
+    if (!products[0]) throw erro(404, "Produto não encontrado.");
+    if (quantidade > Number(products[0].estoque)) {
+      throw erro(409, "Quantidade solicitada maior que o estoque disponível.");
     }
+
     await connection.execute(
-      `UPDATE carrinho_has_compra
-       SET qtd_item = ?
-       WHERE id_carrinho = ? AND id_compra = ?`,
-      [quantidade, idCarrinho, idCompra],
+      `UPDATE item_carrinho SET quantidade = ?
+       WHERE id_item_carrinho = ?`,
+      [quantidade, items[0].id_item_carrinho],
     );
     await connection.commit();
     return true;
@@ -154,26 +156,30 @@ export async function alterarItem(idCliente, idCompra, quantidade) {
   }
 }
 
-export async function removerItem(idCliente, idCompra = null) {
+export async function removerItem(idCliente, idProduto = null) {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
-    const idCarrinho = await obterCarrinhoDoCliente(connection, idCliente);
-    if (!idCarrinho) {
-      await connection.commit();
-      return false;
-    }
-    const [result] = idCompra === null
+    await bloquearCliente(connection, idCliente);
+    const idCarrinho = await obterCarrinhoAtivo(connection, idCliente, true);
+    if (!idCarrinho) throw erro(404, "Carrinho ativo não encontrado.");
+
+    const [result] = idProduto === null
       ? await connection.execute(
-          "DELETE FROM carrinho_has_compra WHERE id_carrinho = ?",
+          "DELETE FROM item_carrinho WHERE id_carrinho = ?",
           [idCarrinho],
         )
       : await connection.execute(
-          "DELETE FROM carrinho_has_compra WHERE id_carrinho = ? AND id_compra = ?",
-          [idCarrinho, idCompra],
+          `DELETE FROM item_carrinho
+           WHERE id_carrinho = ? AND id_produto = ?`,
+          [idCarrinho, idProduto],
         );
+    if (idProduto !== null && result.affectedRows === 0) {
+      throw erro(404, "Produto não encontrado no carrinho.");
+    }
+
     await connection.commit();
-    return idCompra === null || result.affectedRows > 0;
+    return true;
   } catch (error) {
     await connection.rollback();
     throw error;

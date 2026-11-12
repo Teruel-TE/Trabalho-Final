@@ -73,6 +73,10 @@ body {
   gap: 0.8rem;
 }
 
+.auth-buttons[hidden] {
+  display: none;
+}
+
 /* Botões Globais */
 .btn-primary {
   background-color: var(--secondary-color);
@@ -286,6 +290,18 @@ body {
   flex-grow: 1;
 }
 
+.product-category,
+.product-stock {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  margin-bottom: 0.5rem;
+}
+
+.product-stock {
+  color: var(--secondary-color);
+  font-weight: 600;
+}
+
 .card-footer {
   display: flex;
   justify-content: space-between;
@@ -345,6 +361,77 @@ body {
   border-bottom: 1px solid var(--border-color);
 }
 
+.cart-product {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-width: 12rem;
+}
+
+.cart-product-image {
+  width: 4.5rem;
+  height: 4.5rem;
+  flex: 0 0 4.5rem;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+}
+
+.cart-quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.cart-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.4rem;
+  min-height: 2.4rem;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--secondary-color);
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  color: var(--primary-color);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cart-action-button:hover:not(:disabled) {
+  background: var(--secondary-color);
+  color: #ffffff;
+}
+
+.cart-action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.cart-quantity-input {
+  width: 4.2rem;
+  min-height: 2.4rem;
+  padding: 0.35rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font: inherit;
+  text-align: center;
+}
+
+.cart-remove-button {
+  min-width: auto;
+  border-color: #b91c1c;
+  color: #991b1b;
+}
+
+.cart-remove-button:hover:not(:disabled) {
+  background: #b91c1c;
+  color: #ffffff;
+}
+
 .empty-cart-msg {
   text-align: center;
   color: var(--text-muted);
@@ -378,6 +465,24 @@ body {
   margin-top: 1rem;
   color: var(--text-primary);
   font-size: 1.2rem;
+}
+
+.payment-method-label {
+  display: block;
+  margin-top: 1.2rem;
+  margin-bottom: 0.4rem;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.payment-method-select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  color: var(--text-primary);
+  font: inherit;
 }
 
 .btn-success {

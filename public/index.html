@@ -19,6 +19,7 @@
                 <a href="login.html" class="btn-secondary">Entrar</a>
                 <a href="cadastro.html" class="btn-primary">Cadastrar</a>
             </div>
+            <button type="button" class="btn-secondary logout-button" hidden>Sair</button>
         </nav>
     </header>
 
@@ -63,53 +64,8 @@
                 <p>Selecione os melhores itens para o seu laboratório</p>
             </div>
 
-            <div class="product-grid" id="productGrid">
-                <!-- Produto 1: Béquer -->
-                <div class="product-card">
-                    <div class="badge">Mais Vendido</div>
-                    <img src="images/becker.webp" alt="Béquer Graduado 250ml">
-                    <h3>Béquer Graduado 250ml</h3>
-                    <p class="description">Vidro borossilicato com escala de fácil leitura.</p>
-                    <div class="card-footer">
-                        <span class="price">R$ 24,90</span>
-                        <button class="btn-primary btn-add-cart" data-id="1" data-name="Béquer Graduado 250ml" data-price="24.90">Adicionar</button>
-                    </div>
-                </div>
-
-                <!-- Produto 2: Frasco Erlenmeyer -->
-                <div class="product-card">
-                    <img src="images/frasco.jpg" alt="Frasco Erlenmeyer 500ml">
-                    <h3>Frasco Erlenmeyer 500ml</h3>
-                    <p class="description">Ideal para misturas e aquecimento de soluções.</p>
-                    <div class="card-footer">
-                        <span class="price">R$ 38,50</span>
-                        <button class="btn-primary btn-add-cart" data-id="2" data-name="Frasco Erlenmeyer 500ml" data-price="38.50">Adicionar</button>
-                    </div>
-                </div>
-
-                <!-- Produto 3: Kit Vidraria -->
-                <div class="product-card">
-                    <img src="images/kit.jpg" alt="Kit Vidraria Essencial">
-                    <h3>Kit Vidraria Essencial</h3>
-                    <p class="description">Base hexagonal estável com bico vertedor e acessórios.</p>
-                    <div class="card-footer">
-                        <span class="price">R$ 45,00</span>
-                        <button class="btn-primary btn-add-cart" data-id="3" data-name="Kit Vidraria Essencial" data-price="45.00">Adicionar</button>
-                    </div>
-                </div>
-
-                <!-- Produto 4: Tiras de PH -->
-                <div class="product-card">
-                    <div class="badge">Oferta</div>
-                    <img src="images/Tiras_PH.jpg" alt="Tiras Indicadoras de pH">
-                    <h3>Tiras Indicadoras de pH</h3>
-                    <p class="description">Conjunto com 100 fitas para testes rápidos e precisos.</p>
-                    <div class="card-footer">
-                        <span class="price">R$ 15,00</span>
-                        <button class="btn-primary btn-add-cart" data-id="4" data-name="Tiras Indicadoras de pH" data-price="15.00">Adicionar</button>
-                    </div>
-                </div>
-            </div>
+            <p id="catalog-status" aria-live="polite"></p>
+            <div class="product-grid" id="productGrid"></div>
         </section>
     </main>
 

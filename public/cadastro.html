@@ -3,20 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Criar Conta - VerdeLab</title>
+    <title>Criar Conta - ChemLab</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="auth-body">
     <div class="auth-container">
         <div class="auth-card">
             <a href="index.html" class="back-home">← Voltar para a Loja</a>
-            <h2>🧪 Criar Conta no VerdeLab</h2>
+            <h2>🧪 Criar Conta no ChemLab</h2>
             
             <form id="cadastro-form">
                 <!-- Dados de Login / Cliente -->
                 <div class="form-group">
                     <label for="cadastro-nome">Nome Completo</label>
                     <input type="text" id="cadastro-nome" required placeholder="Seu nome completo">
+                </div>
+
+                <div class="form-group">
+                    <label for="cadastro-cnpj-cpf">CPF/CNPJ</label>
+                    <input type="text" id="cadastro-cnpj-cpf" required placeholder="CPF ou CNPJ" inputmode="numeric" autocomplete="off" maxlength="18">
                 </div>
                 
                 <div class="form-group">
@@ -26,7 +31,17 @@
 
                 <div class="form-group">
                     <label for="cadastro-password">Senha</label>
-                    <input type="password" id="cadastro-password" required placeholder="******">
+                    <input type="password" id="cadastro-password" required maxlength="80" autocomplete="new-password" placeholder="******">
+                </div>
+
+                <div class="form-group">
+                    <label for="cadastro-instituicao">Instituição/Laboratório (opcional)</label>
+                    <input type="text" id="cadastro-instituicao" maxlength="150">
+                </div>
+
+                <div class="form-group">
+                    <label for="cadastro-telefone">Telefone (opcional)</label>
+                    <input type="tel" id="cadastro-telefone" maxlength="20">
                 </div>
 
                 <hr style="margin: 1.5rem 0; border: 0; border-top: 1px solid var(--border-color);">
@@ -69,3 +84,10 @@
             </form>
 
             <p class="auth-redirect">Já tem uma conta? <a href="login.html">Faça login</a></p>
+
+        </div>
+    </div>
+
+    <script src="js/usuario.js"></script>
+</body>
+</html>

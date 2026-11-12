@@ -1,106 +1,107 @@
-CREATE DATABASE IF NOT EXISTS projeto_integrador;
-USE projeto_integrador;
+DROP DATABASE IF EXISTS chemlab_projeto;
 
--- 1. Tabela CLIENTE
-CREATE TABLE cliente (
+
+CREATE DATABASE chemlab_projeto
+DEFAULT CHARACTER SET utf8mb4
+DEFAULT COLLATE utf8mb4_unicode_ci;
+
+
+USE chemlab_projeto;
+
+
+-- 1. Tabela CLIENTE_USUARIO
+CREATE TABLE cliente_usuario (
     id_cliente INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    cpf_cnpj VARCHAR(18) NOT NULL UNIQUE,
+    nome VARCHAR(150) NOT NULL,
+    cnpj_cpf VARCHAR(20) NOT NULL UNIQUE,
+    instituicao_laboratorio VARCHAR(150),
+    email VARCHAR(150) NOT NULL UNIQUE,
+    senha_hash VARCHAR(255) NOT NULL,
     telefone VARCHAR(20),
-    data_nascimento_fundacao DATE
+    endereco TEXT NOT NULL,
+    data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- 2. Tabela CADASTRO (Relacionamento 1:1 com cliente)
-CREATE TABLE cadastro (
-    id_cadastro INT AUTO_INCREMENT PRIMARY KEY,
-    id_cliente INT UNIQUE NOT NULL,
-    cep VARCHAR(10) NOT NULL,
-    logradouro VARCHAR(150) NOT NULL,
-    numero VARCHAR(10) NOT NULL,
-    bairro VARCHAR(50),
-    cidade VARCHAR(50) NOT NULL,
-    estado VARCHAR(2) NOT NULL,
-    data_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente) ON DELETE CASCADE
+
+-- 2. Tabela CATEGORIA (Nova tabela solicitada pelo professor)
+CREATE TABLE categoria (
+    id_categoria INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL UNIQUE,
+    descricao TEXT
 );
 
--- 3. Tabela LOGIN (Relacionamento 1:1 com cliente)
-CREATE TABLE login (
-    id_login INT AUTO_INCREMENT PRIMARY KEY,
-    id_cliente INT UNIQUE NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    senha VARCHAR(80) NOT NULL,
-    ultimo_acesso DATETIME,
-    FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente) ON DELETE CASCADE
+
+-- 3. Tabela PRODUTO (Agora ligada à CATEGORIA via id_categoria)
+CREATE TABLE produto (
+    id_produto INT AUTO_INCREMENT PRIMARY KEY,
+    id_categoria INT NOT NULL,
+    nome VARCHAR(150) NOT NULL,
+    descricao TEXT,
+    volume_capacidade VARCHAR(50),
+    material_pureza VARCHAR(100),
+    formula_quimica VARCHAR(50),
+    grau_risco VARCHAR(50),
+    preco DECIMAL(10, 2) NOT NULL,
+    estoque INT NOT NULL DEFAULT 0,
+    CONSTRAINT fk_produto_categoria FOREIGN KEY (id_categoria) REFERENCES categoria(id_categoria)
 );
 
--- 4. Tabela CONSULTA (Relacionamento 1:N com cliente)
-CREATE TABLE consulta (
-    id_consulta INT AUTO_INCREMENT PRIMARY KEY,
-    id_cliente INT NOT NULL,
-    data_consulta DATETIME DEFAULT CURRENT_TIMESTAMP,
-    consumo_kwh_mes DECIMAL(10,2) NOT NULL,
-    tipo_telhado VARCHAR(50),
-    descricao_necessidade TEXT,
-    FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente)
-);
 
--- 5. Tabela CARRINHO_DE_COMPRA (Relacionamento 1:N com cliente)
-CREATE TABLE carrinho_de_compra (
+-- 4. Tabela CARRINHO
+CREATE TABLE carrinho (
     id_carrinho INT AUTO_INCREMENT PRIMARY KEY,
     id_cliente INT NOT NULL,
     data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente)
+    status VARCHAR(30) DEFAULT 'ativo',
+    CONSTRAINT fk_carrinho_cliente FOREIGN KEY (id_cliente) REFERENCES cliente_usuario(id_cliente)
 );
 
--- 6. Tabela VENDA (Relacionamento 1:1 com carrinho_de_compra e N:1 com cliente)
-CREATE TABLE venda (
-    id_venda INT AUTO_INCREMENT PRIMARY KEY,
+
+-- 5. Tabela ITEM_CARRINHO
+CREATE TABLE item_carrinho (
+    id_item_carrinho INT AUTO_INCREMENT PRIMARY KEY,
+    id_carrinho INT NOT NULL,
+    id_produto INT NOT NULL,
+    quantidade INT NOT NULL DEFAULT 1,
+    preco_unitario DECIMAL(10, 2) NOT NULL,
+    CONSTRAINT fk_item_carrinho_carrinho FOREIGN KEY (id_carrinho) REFERENCES carrinho(id_carrinho) ON DELETE CASCADE,
+    CONSTRAINT fk_item_carrinho_produto FOREIGN KEY (id_produto) REFERENCES produto(id_produto)
+);
+
+
+-- 6. Tabela COMPRA_VENDA
+CREATE TABLE compra_venda (
+    id_compra INT AUTO_INCREMENT PRIMARY KEY,
     id_cliente INT NOT NULL,
-    id_carrinho INT UNIQUE NOT NULL,
-    data_venda DATETIME DEFAULT CURRENT_TIMESTAMP,
-    valor_total DECIMAL(10,2) NOT NULL,
+    data_compra DATETIME DEFAULT CURRENT_TIMESTAMP,
+    valor_total DECIMAL(10, 2) NOT NULL,
     forma_pagamento VARCHAR(50) NOT NULL,
-    status_pagamento VARCHAR(30) DEFAULT 'Pendente',
-    FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente),
-    FOREIGN KEY (id_carrinho) REFERENCES carrinho_de_compra(id_carrinho)
+    status VARCHAR(30) DEFAULT 'concluida',
+    CONSTRAINT fk_compra_cliente FOREIGN KEY (id_cliente) REFERENCES cliente_usuario(id_cliente)
 );
 
--- 7. Tabela NOTA_FISCAL (Relacionamento 1:1 com venda)
+
+-- 7. Tabela ITEM_COMPRA
+CREATE TABLE item_compra (
+    id_item_compra INT AUTO_INCREMENT PRIMARY KEY,
+    id_compra INT NOT NULL,
+    id_produto INT NOT NULL,
+    quantidade INT NOT NULL,
+    preco_unitario DECIMAL(10, 2) NOT NULL,
+    CONSTRAINT fk_item_compra_compra FOREIGN KEY (id_compra) REFERENCES compra_venda(id_compra) ON DELETE CASCADE,
+    CONSTRAINT fk_item_compra_produto FOREIGN KEY (id_produto) REFERENCES produto(id_produto)
+);
+
+
+-- 8. Tabela NOTA_FISCAL
 CREATE TABLE nota_fiscal (
     id_nota_fiscal INT AUTO_INCREMENT PRIMARY KEY,
-    id_venda INT UNIQUE NOT NULL,
+    id_compra INT NOT NULL UNIQUE,
+    id_cliente INT NOT NULL,
+    numero_nota VARCHAR(50) NOT NULL UNIQUE,
     data_emissao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    valor_nota DECIMAL(10,2) NOT NULL,
-    FOREIGN KEY (id_venda) REFERENCES venda(id_venda)
-);
-
--- 8. Tabela COMPRA (Armazena aquisições de estoque de kits/componentes solares junto a fornecedores)
-CREATE TABLE compra (
-    id_compra INT AUTO_INCREMENT PRIMARY KEY,
-    fornecedor VARCHAR(100) NOT NULL,
-    data_compra DATETIME DEFAULT CURRENT_TIMESTAMP,
-    valor_total_compra DECIMAL(10,2) NOT NULL
-);
-
--- Itens persistidos de cada carrinho antes da finalização da venda
-CREATE TABLE carrinho_has_compra (
-    id_carrinho INT NOT NULL,
-    id_compra INT NOT NULL,
-    qtd_item INT NOT NULL DEFAULT 1,
-    PRIMARY KEY (id_carrinho, id_compra),
-    FOREIGN KEY (id_carrinho)
-        REFERENCES carrinho_de_compra(id_carrinho)
-        ON DELETE CASCADE,
-    FOREIGN KEY (id_compra) REFERENCES compra(id_compra)
-);
-
--- TABELA ASSOCIATIVA (N:N entre VENDA e COMPRA)
-CREATE TABLE venda_has_compra (
-    id_venda INT NOT NULL,
-    id_compra INT NOT NULL,
-    qtd_item INT DEFAULT 1,
-    PRIMARY KEY (id_venda, id_compra),
-    FOREIGN KEY (id_venda) REFERENCES venda(id_venda),
-    FOREIGN KEY (id_compra) REFERENCES compra(id_compra)
+    valor_total DECIMAL(10, 2) NOT NULL,
+    chave_acesso VARCHAR(60) NOT NULL UNIQUE,
+    CONSTRAINT fk_nf_compra FOREIGN KEY (id_compra) REFERENCES compra_venda(id_compra),
+    CONSTRAINT fk_nf_cliente FOREIGN KEY (id_cliente) REFERENCES cliente_usuario(id_cliente)
 );

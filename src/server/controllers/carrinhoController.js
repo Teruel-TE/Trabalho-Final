@@ -17,16 +17,16 @@ export async function obter(req, res) {
   const idCliente = idPositivo(req.params.id_cliente);
   if (!idCliente) return res.status(400).json({ erro: "id_cliente inválido." });
 
-  const idCarrinho = await carrinhoModel.buscarCarrinhoAberto(idCliente);
+  const idCarrinho = await carrinhoModel.buscarCarrinhoAtivo(idCliente);
   const itens = idCarrinho ? await carrinhoModel.listarItens(idCarrinho) : [];
   return res.json({ id_carrinho: idCarrinho, itens });
 }
 
 export async function adicionar(req, res) {
   const idCliente = idPositivo(req.params.id_cliente);
-  const idCompra = idPositivo(req.body.id_compra);
-  const quantidade = Number(req.body.quantidade ?? 1);
-  if (!idCliente || !idCompra || !quantidadeValida(quantidade)) {
+  const idProduto = idPositivo(req.body?.id_produto);
+  const quantidade = Number(req.body?.quantidade ?? 1);
+  if (!idCliente || !idProduto || !quantidadeValida(quantidade)) {
     return res
       .status(400)
       .json({ erro: "Cliente, produto ou quantidade inválidos." });
@@ -34,7 +34,7 @@ export async function adicionar(req, res) {
 
   const idCarrinho = await carrinhoModel.adicionarItem(
     idCliente,
-    idCompra,
+    idProduto,
     quantidade,
   );
   return res
@@ -44,16 +44,16 @@ export async function adicionar(req, res) {
 
 export async function alterarQuantidade(req, res) {
   const idCliente = idPositivo(req.params.id_cliente);
-  const idCompra = idPositivo(req.params.id_compra);
-  const quantidade = Number(req.body.quantidade);
-  if (!idCliente || !idCompra || !quantidadeValida(quantidade)) {
+  const idProduto = idPositivo(req.body?.id_produto);
+  const quantidade = Number(req.body?.quantidade);
+  if (!idCliente || !idProduto || !quantidadeValida(quantidade)) {
     return res
       .status(400)
       .json({ erro: "Cliente, produto ou quantidade inválidos." });
   }
   const atualizado = await carrinhoModel.alterarItem(
     idCliente,
-    idCompra,
+    idProduto,
     quantidade,
   );
   if (!atualizado)
@@ -63,13 +63,13 @@ export async function alterarQuantidade(req, res) {
 
 export async function remover(req, res) {
   const idCliente = idPositivo(req.params.id_cliente);
-  const idCompra = req.params.id_compra
-    ? idPositivo(req.params.id_compra)
+  const idProduto = req.body?.id_produto
+    ? idPositivo(req.body.id_produto)
     : null;
-  if (!idCliente || (req.params.id_compra && !idCompra)) {
+  if (!idCliente || (req.body?.id_produto && !idProduto)) {
     return res.status(400).json({ erro: "Cliente ou produto inválido." });
   }
-  const removido = await carrinhoModel.removerItem(idCliente, idCompra);
+  const removido = await carrinhoModel.removerItem(idCliente, idProduto);
   if (!removido)
     return res
       .status(404)

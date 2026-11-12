@@ -3,19 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Carrinho - VerdeLab</title>
+    <title>Meu Carrinho - ChemLab</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <!-- Cabeçalho -->
     <header class="header">
-        <div class="logo">🌿 <span>Verde</span>Lab</div>
+        <div class="logo">🧪 <span>Chem</span>Lab</div>
         <nav class="nav">
             <a href="index.html#catalogo">Continuar a Comprar</a>
             <div class="auth-buttons">
                 <a href="login.html" class="btn-secondary">Entrar</a>
                 <a href="cadastro.html" class="btn-primary">Cadastrar</a>
             </div>
+            <button type="button" class="btn-secondary logout-button" hidden>Sair</button>
         </nav>
     </header>
 
@@ -50,6 +51,13 @@
                         <span>Total:</span>
                         <strong>R$ <span id="cart-total">0,00</span></strong>
                     </div>
+                    <label class="payment-method-label" for="forma-pagamento">Forma de pagamento</label>
+                    <select id="forma-pagamento" class="payment-method-select">
+                        <option value="Pix">Pix</option>
+                        <option value="Cartão de crédito">Cartão de crédito</option>
+                        <option value="Cartão de débito">Cartão de débito</option>
+                        <option value="Dinheiro">Dinheiro</option>
+                    </select>
                     <button id="btn-checkout" class="btn-success">Finalizar Compra</button>
                 </div>
             </div>
@@ -57,9 +65,10 @@
     </main>
 
     <footer class="footer">
-        <p>&copy; 2026 VerdeLab - Vidrarias e Equipamentos de Laboratório.</p>
+        <p>&copy; 2026 ChemLab - Vidrarias e Equipamentos de Laboratório.</p>
     </footer>
 
     <script src="js/script.js"></script>
+    <script src="js/carrinho.js"></script>
 </body>
 </html>
