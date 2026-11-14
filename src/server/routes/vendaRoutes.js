@@ -6,7 +6,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 const router = Router();
 router.use(exigirSessao);
 router.get("/", asyncHandler(controller.listar));
-router.get("/:id_venda", asyncHandler(controller.obter));
+router.get("/:id_compra", asyncHandler(controller.obter));
 router.post("/", asyncHandler(controller.criar));
 
 export default router;

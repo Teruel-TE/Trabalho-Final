@@ -2,7 +2,10 @@ import cors from "cors";
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
+
 import carrinhoRoutes from "./routes/carrinhoRoutes.js";
+import notaFiscalRoutes from "./routes/notaFiscalRoutes.js";
 import produtoRoutes from "./routes/produtoRoutes.js";
 import usuarioRoutes from "./routes/usuarioRoutes.js";
 import vendaRoutes from "./routes/vendaRoutes.js";
@@ -22,6 +25,7 @@ app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 app.use("/api", usuarioRoutes);
 app.use("/api/produtos", produtoRoutes);
 app.use("/api/carrinho", carrinhoRoutes);
+app.use("/api/notas-fiscais", notaFiscalRoutes);
 app.use("/api/vendas", vendaRoutes);
 app.use("/api/compras", vendaRoutes);
 app.use(express.static(publicDirectory));

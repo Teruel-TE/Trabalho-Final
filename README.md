@@ -29,9 +29,15 @@ permitem acessar as vendas do usuário autenticado:
 | --- | --- | --- |
 | `POST` | `/api/vendas` | Finalizar o carrinho e emitir a nota fiscal |
 | `GET` | `/api/vendas` | Listar o histórico de vendas |
-| `GET` | `/api/vendas/:id_venda` | Consultar uma venda e seus itens |
+| `GET` | `/api/vendas/:id_compra` | Consultar uma compra e seus itens |
 
 A criação recebe `forma_pagamento` (`Pix`, `Cartão de crédito`,
 `Cartão de débito` ou `Dinheiro`). Vendas finalizadas não podem ser alteradas
 ou excluídas por essas rotas. A estrutura do banco deve estar atualizada com
 as tabelas de `db/db.sql`.
+
+Clientes autenticados podem consultar suas notas fiscais em
+`public/notas-fiscais.html`. A página consulta a tabela `nota_fiscal` pelo
+cliente autenticado, lista suas notas e permite visualizar a chave de acesso
+e os itens de cada compra. A API autenticada oferece `GET /api/notas-fiscais`
+e `GET /api/notas-fiscais/:id_nota_fiscal`.

@@ -1,14 +1,44 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const usuario = obterUsuarioLogado();
-    if (!usuario) {
+    const token = localStorage.getItem('tokenAcesso');
+    if (!usuario || !token) {
+        limparSessaoLocal();
         alert('É necessário efetuar login para acessar o carrinho.');
-        window.location.href = 'login.html';
+        redirecionarParaLogin();
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/usuarios/me', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.status === 401) {
+            limparSessaoLocal();
+            alert('Sua sessão expirou. Faça login novamente para continuar a compra.');
+            redirecionarParaLogin();
+            return;
+        }
+        if (!response.ok) {
+            throw new Error('Não foi possível validar sua sessão.');
+        }
+    } catch (error) {
+        console.error('Erro ao validar sessão:', error);
+        alert('Não foi possível validar sua sessão. Tente novamente.');
         return;
     }
 
     carregarCarrinho(usuario.id_cliente);
     document.getElementById('btn-checkout').addEventListener('click', () => finalizarCompra(usuario.id_cliente));
 });
+
+function limparSessaoLocal() {
+    localStorage.removeItem('usuarioLogado');
+    localStorage.removeItem('tokenAcesso');
+}
+
+function redirecionarParaLogin() {
+    window.location.href = 'login.html?retorno=carrinho.html';
+}
 
 function obterUsuarioLogado() {
     try {
@@ -206,6 +236,12 @@ async function finalizarCompra(idCliente) {
         });
         const data = await response.json();
         if (!response.ok) {
+            if (response.status === 401) {
+                limparSessaoLocal();
+                alert('Sua sessão expirou. Faça login novamente para finalizar a compra.');
+                redirecionarParaLogin();
+                return;
+            }
             alert(data.erro || 'Não foi possível finalizar a compra.');
             return;
         }

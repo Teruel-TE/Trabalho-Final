@@ -80,7 +80,10 @@ if (loginForm) {
                 localStorage.setItem('usuarioLogado', JSON.stringify(data.usuario));
                 localStorage.setItem('tokenAcesso', data.token);
                 alert('Login efetuado com sucesso!');
-                window.location.href = 'index.html';
+                const retorno = new URLSearchParams(window.location.search).get('retorno');
+                window.location.href = ['carrinho.html', 'notas-fiscais.html'].includes(retorno)
+                    ? retorno
+                    : 'index.html';
             } else {
                 alert(data.erro || 'Erro ao realizar login. Verifique o seu e-mail e senha.');
             }

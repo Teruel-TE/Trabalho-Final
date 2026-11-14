@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minhas Notas Fiscais - ChemLab</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">🧪 <span>Chem</span>Lab</div>
+        <nav class="nav">
+            <a href="index.html">Loja</a>
+            <a href="carrinho.html">Carrinho</a>
+            <a href="notas-fiscais.html" class="private-link" hidden>Notas fiscais</a>
+            <div class="auth-buttons">
+                <a href="login.html" class="btn-secondary">Entrar</a>
+                <a href="cadastro.html" class="btn-primary">Cadastrar</a>
+            </div>
+            <button type="button" class="btn-secondary logout-button" hidden>Sair</button>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="invoice-section">
+            <div class="section-title">
+                <h2>Minhas Notas Fiscais</h2>
+                <p>Consulte as notas fiscais das suas compras</p>
+            </div>
+            <p id="invoice-status" class="invoice-status" role="status" aria-live="polite">
+                Carregando notas fiscais...
+            </p>
+            <div id="invoice-list" class="invoice-list"></div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 ChemLab - Vidrarias e Equipamentos de Laboratório.</p>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script src="js/notas-fiscais.js"></script>
+</body>
+</html>

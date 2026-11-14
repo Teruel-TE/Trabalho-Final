@@ -3,6 +3,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.auth-buttons').forEach(buttons => {
         buttons.hidden = Boolean(usuario);
     });
+    document.querySelectorAll('.private-link').forEach(link => {
+        link.hidden = !usuario;
+    });
     document.querySelectorAll('.logout-button').forEach(button => {
         button.hidden = !usuario;
         button.addEventListener('click', async () => {
@@ -73,16 +76,17 @@ async function carregarCatalogo() {
         }
 
         grid.replaceChildren();
+        status.textContent = '';
         if (data.length === 0) {
-            status.textContent = 'O catálogo está vazio. Cadastre categorias e produtos no banco de dados para exibi-los aqui.';
+            status.textContent = 'Nenhum produto cadastrado. Execute o arquivo db/seed-produtos.sql para cadastrar os produtos iniciais.';
             return;
         }
 
-        status.textContent = '';
         for (const product of data) grid.append(criarCartaoProduto(product));
     } catch (error) {
         console.error('Erro ao carregar catálogo:', error);
-        if (status) status.textContent = 'Não foi possível carregar o catálogo. Tente novamente mais tarde.';
+        grid.replaceChildren();
+        status.textContent = 'Não foi possível carregar os produtos do servidor. Tente novamente mais tarde.';
     }
 }
 

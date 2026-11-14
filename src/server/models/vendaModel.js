@@ -123,7 +123,9 @@ export async function criar(idCliente, formaPagamento) {
 export async function listar(idCliente) {
   const [rows] = await pool.execute(
     `SELECT v.id_compra, v.data_compra, v.valor_total,
-            v.forma_pagamento, v.status, nf.numero_nota
+            v.forma_pagamento, v.status, nf.id_nota_fiscal,
+            nf.numero_nota, nf.data_emissao, nf.valor_total AS valor_nota,
+            nf.chave_acesso
      FROM compra_venda v
      LEFT JOIN nota_fiscal nf ON nf.id_compra = v.id_compra
      WHERE v.id_cliente = ?
@@ -133,15 +135,16 @@ export async function listar(idCliente) {
   return rows;
 }
 
-export async function buscarPorId(idCliente, idVenda) {
+export async function buscarPorId(idCliente, idCompra) {
   const [vendas] = await pool.execute(
     `SELECT v.id_compra, v.id_cliente, v.data_compra, v.valor_total,
-            v.forma_pagamento, v.status, nf.numero_nota, nf.chave_acesso
+            v.forma_pagamento, v.status, nf.id_nota_fiscal, nf.numero_nota,
+            nf.data_emissao, nf.valor_total AS valor_nota, nf.chave_acesso
      FROM compra_venda v
      LEFT JOIN nota_fiscal nf ON nf.id_compra = v.id_compra
      WHERE v.id_cliente = ? AND v.id_compra = ?
      LIMIT 1`,
-    [idCliente, idVenda],
+    [idCliente, idCompra],
   );
   if (!vendas[0]) return null;
 
@@ -152,7 +155,7 @@ export async function buscarPorId(idCliente, idVenda) {
      INNER JOIN produto p ON p.id_produto = ic.id_produto
      WHERE ic.id_compra = ?
      ORDER BY p.nome`,
-    [idVenda],
+    [idCompra],
   );
   return { ...vendas[0], itens };
 }

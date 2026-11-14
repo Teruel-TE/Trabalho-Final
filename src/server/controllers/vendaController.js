@@ -33,10 +33,10 @@ export async function listar(req, res) {
 }
 
 export async function obter(req, res) {
-  const idVenda = idPositivo(req.params.id_venda);
-  if (!idVenda) return res.status(400).json({ erro: "ID da venda inválido." });
+  const idCompra = idPositivo(req.params.id_compra);
+  if (!idCompra) return res.status(400).json({ erro: "ID da compra inválido." });
 
-  const venda = await vendaModel.buscarPorId(req.idCliente, idVenda);
+  const venda = await vendaModel.buscarPorId(req.idCliente, idCompra);
   if (!venda) return res.status(404).json({ erro: "Venda não encontrada." });
   return res.json(venda);
 }
