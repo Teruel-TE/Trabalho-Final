@@ -1,5 +1,14 @@
 # Trabalho-Final
 
+## Banco de dados
+
+Execute `db/db.sql` para criar o banco e as tabelas. Depois, execute
+`db/seed-produtos.sql` para cadastrar os produtos iniciais e
+`db/reposicao-estoque.sql` para repor o estoque: 50 unidades do béquer, 75 do
+Erlenmeyer, 40 das tiras de pH e 43 do kit de vidraria. A reposição é somada ao
+estoque atual; executar o arquivo novamente adiciona as mesmas quantidades de
+novo.
+
 ## Usuários
 
 O servidor é iniciado pela raiz do projeto com `npm start` (ou `npm run dev`).
