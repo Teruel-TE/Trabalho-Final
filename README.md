@@ -41,3 +41,10 @@ Clientes autenticados podem consultar suas notas fiscais em
 cliente autenticado, lista suas notas e permite visualizar a chave de acesso
 e os itens de cada compra. A API autenticada oferece `GET /api/notas-fiscais`
 e `GET /api/notas-fiscais/:id_nota_fiscal`.
+
+
+PORT=3000
+DB_HOST=localhost
+DB_USER=root
+DB_PASS=senai2026
+DB_NAME=chemlab_projeto
