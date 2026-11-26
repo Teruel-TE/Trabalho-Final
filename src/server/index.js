@@ -2,11 +2,13 @@ import "dotenv/config";
 import app from "./app.js";
 import pool from "./db.js";
 
+// Porta configurada pelo ambiente ou porta padrão da aplicação.
 const port = Number(process.env.PORT) || 3000;
 const server = app.listen(port, () => {
   console.log(`ChemLab disponível em http://localhost:${port}`);
 });
 
+// Encerra o servidor HTTP e fecha as conexões antes de finalizar o processo.
 async function shutdown(signal) {
   console.log(`\n${signal}: encerrando servidor...`);
   server.close(async (serverError) => {

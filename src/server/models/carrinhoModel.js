@@ -1,11 +1,13 @@
 import pool from "../db.js";
 
+// Monta um erro com status HTTP utilizado pelos controladores.
 function erro(status, mensagem) {
   const error = new Error(mensagem);
   error.status = status;
   return error;
 }
 
+// Consulta o carrinho ativo e pode bloquear a linha para alterações.
 async function obterCarrinhoAtivo(connection, idCliente, bloquear = false) {
   const [rows] = await connection.execute(
     `SELECT id_carrinho
@@ -18,6 +20,7 @@ async function obterCarrinhoAtivo(connection, idCliente, bloquear = false) {
   return rows[0]?.id_carrinho ?? null;
 }
 
+// Bloqueia e verifica se o cliente existe antes de modificar dados.
 async function bloquearCliente(connection, idCliente) {
   const [rows] = await connection.execute(
     "SELECT id_cliente FROM cliente_usuario WHERE id_cliente = ? FOR UPDATE",
@@ -26,6 +29,7 @@ async function bloquearCliente(connection, idCliente) {
   if (rows.length === 0) throw erro(404, "Cliente não encontrado.");
 }
 
+// Recupera o carrinho ativo ou cria um novo dentro da transação.
 async function obterOuCriarCarrinhoAtivo(connection, idCliente) {
   let idCarrinho = await obterCarrinhoAtivo(connection, idCliente, true);
   if (idCarrinho) return idCarrinho;
@@ -37,10 +41,12 @@ async function obterOuCriarCarrinhoAtivo(connection, idCliente) {
   return result.insertId;
 }
 
+// Localiza o carrinho ativo sem abrir uma transação própria.
 export async function buscarCarrinhoAtivo(idCliente) {
   return obterCarrinhoAtivo(pool, idCliente);
 }
 
+// Retorna itens, produtos, quantidades e subtotais do carrinho.
 export async function listarItens(idCarrinho) {
   const [rows] = await pool.execute(
     `SELECT ic.id_produto, ic.quantidade, ic.preco_unitario,
@@ -55,6 +61,7 @@ export async function listarItens(idCarrinho) {
   return rows;
 }
 
+// Acrescenta produto ao carrinho com validação de estoque e limite.
 export async function adicionarItem(idCliente, idProduto, quantidade) {
   const connection = await pool.getConnection();
   try {
@@ -114,6 +121,7 @@ export async function adicionarItem(idCliente, idProduto, quantidade) {
   }
 }
 
+// Altera quantidade de um item já presente no carrinho.
 export async function alterarItem(idCliente, idProduto, quantidade) {
   const connection = await pool.getConnection();
   try {
@@ -156,6 +164,7 @@ export async function alterarItem(idCliente, idProduto, quantidade) {
   }
 }
 
+// Remove um item específico ou limpa todo o carrinho.
 export async function removerItem(idCliente, idProduto = null) {
   const connection = await pool.getConnection();
   try {

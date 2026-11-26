@@ -1,5 +1,7 @@
 # Trabalho-Final
 
+<!-- README: visão geral da configuração do banco e das principais APIs do projeto. -->
+
 ## Banco de dados
 
 Execute `db/db.sql` para criar o banco e as tabelas. Depois, execute

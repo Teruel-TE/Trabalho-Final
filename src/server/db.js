@@ -1,4 +1,4 @@
-
+// Cria o pool de conexões reutilizáveis com o banco MariaDB/MySQL.
 import mysql from "mysql2/promise";
 import "dotenv/config";
 

@@ -1,5 +1,6 @@
 import pool from "../db.js";
 
+// Lista produtos associados às suas categorias em ordem alfabética.
 export async function listarProdutos() {
   const [rows] = await pool.execute(
     `SELECT p.id_produto, p.id_categoria, p.nome, p.descricao,

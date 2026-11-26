@@ -1,6 +1,7 @@
 import pool from "../db.js";
 import { randomBytes } from "node:crypto";
 
+// Cria uma nota fiscal vinculada à compra e gera seus identificadores.
 export async function criar(connection, dados) {
   const numeroNota = `CL-${Date.now()}-${randomBytes(4).toString("hex")}`;
   const chaveAcesso = randomBytes(30).toString("hex");
@@ -23,6 +24,7 @@ export async function criar(connection, dados) {
   };
 }
 
+// Lista notas emitidas para um determinado cliente.
 export async function listarPorCliente(idCliente) {
   const [rows] = await pool.execute(
     `SELECT nf.id_nota_fiscal, nf.id_compra, nf.numero_nota,
@@ -37,6 +39,7 @@ export async function listarPorCliente(idCliente) {
   return rows;
 }
 
+// Busca uma nota e seus itens, garantindo que pertença ao cliente.
 export async function buscarPorId(idCliente, idNotaFiscal) {
   const [notas] = await pool.execute(
     `SELECT nf.id_nota_fiscal, nf.id_compra, nf.numero_nota,

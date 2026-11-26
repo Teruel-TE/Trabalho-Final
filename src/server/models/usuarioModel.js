@@ -1,6 +1,7 @@
 import pool from "../db.js";
 import { gerarHashSenha, verificarSenha } from "../utils/senha.js";
 
+// Insere o cliente no banco e protege a senha com hash scrypt.
 export async function criar(dados) {
   const senhaHash = await gerarHashSenha(dados.senha);
   try {
@@ -29,6 +30,7 @@ export async function criar(dados) {
   }
 }
 
+// Busca o usuário pelo e-mail e confirma a senha informada.
 export async function autenticar(email, senha) {
   const [rows] = await pool.execute(
     `SELECT id_cliente, nome, email, senha_hash
@@ -44,6 +46,7 @@ export async function autenticar(email, senha) {
   return usuario;
 }
 
+// Consulta os dados públicos e cadastrais de um cliente pelo ID.
 export async function buscarPorId(idCliente) {
   const [rows] = await pool.execute(
     `SELECT id_cliente, nome, cnpj_cpf, instituicao_laboratorio, email,
@@ -56,6 +59,7 @@ export async function buscarPorId(idCliente) {
   return rows[0] ?? null;
 }
 
+// Atualiza perfil e, opcionalmente, altera o hash da senha.
 export async function atualizar(idCliente, dados) {
   const parametros = [
     dados.nome,
@@ -90,6 +94,7 @@ export async function atualizar(idCliente, dados) {
   }
 }
 
+// Remove o carrinho e a conta em uma transação única.
 export async function excluir(idCliente) {
   const connection = await pool.getConnection();
   try {

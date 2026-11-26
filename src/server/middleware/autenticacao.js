@@ -1,5 +1,6 @@
 import { buscarSessao } from "../utils/sessoes.js";
 
+// Valida o token Bearer e disponibiliza o usuário autenticado na requisição.
 export function exigirSessao(req, res, next) {
   const autorizacao = req.get("authorization") ?? "";
   const correspondencia = /^Bearer ([a-f\d]{64})$/i.exec(autorizacao);

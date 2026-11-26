@@ -4,6 +4,7 @@ import * as controller from "../controllers/vendaController.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
 const router = Router();
+// Todas as operações de venda exigem autenticação.
 router.use(exigirSessao);
 router.get("/", asyncHandler(controller.listar));
 router.get("/:id_compra", asyncHandler(controller.obter));

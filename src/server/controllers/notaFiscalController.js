@@ -1,11 +1,13 @@
 import * as notaFiscalModel from "../models/nota_fiscalModel.js";
 
+// Valida IDs numéricos recebidos nas rotas.
 function idPositivo(value) {
   const id = Number(value);
   return Number.isSafeInteger(id) && id > 0 ? id : null;
 }
 
 export async function listar(req, res) {
+  // Consulta somente as notas pertencentes ao usuário autenticado.
   return res.json(await notaFiscalModel.listarPorCliente(req.idCliente));
 }
 

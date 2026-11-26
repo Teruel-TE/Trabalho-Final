@@ -5,12 +5,14 @@ const scrypt = promisify(scryptCallback);
 const SALT_BYTES = 16;
 const KEY_BYTES = 64;
 
+// Gera um hash seguro da senha usando o algoritmo scrypt.
 export async function gerarHashSenha(senha) {
   const salt = randomBytes(SALT_BYTES);
   const hash = await scrypt(senha, salt, KEY_BYTES);
   return `scrypt:${salt.toString("hex")}:${hash.toString("hex")}`;
 }
 
+// Compara uma senha informada com o hash armazenado em formato scrypt.
 export async function verificarSenha(senha, senhaHash) {
   const [algoritmo, saltHex, hashHex] = senhaHash.split(":");
   if (

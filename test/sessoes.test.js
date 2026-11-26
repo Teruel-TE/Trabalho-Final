@@ -7,6 +7,7 @@ import {
   revogarSessoesUsuario,
 } from "../src/server/utils/sessoes.js";
 
+// Verifica criação, uso e revogação manual de uma sessão.
 test("sessão só autentica enquanto o token existir", () => {
   const token = criarSessao(42);
 
@@ -15,6 +16,7 @@ test("sessão só autentica enquanto o token existir", () => {
   assert.equal(buscarSessao(token), null);
 });
 
+// Confirma que revogar um usuário não afeta a sessão de outro cliente.
 test("revoga todas as sessões da própria conta", () => {
   const tokenUsuarioAlvo = criarSessao(101);
   const tokenOutroUsuario = criarSessao(202);

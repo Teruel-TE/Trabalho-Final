@@ -1,10 +1,12 @@
 import * as carrinhoModel from "../models/carrinhoModel.js";
 
+// Converte um valor recebido em identificador inteiro positivo.
 function idPositivo(value) {
   const number = Number(value);
   return Number.isSafeInteger(number) && number > 0 ? number : null;
 }
 
+// Limita quantidades válidas entre 1 e 1000 unidades.
 function quantidadeValida(value) {
   return (
     Number.isSafeInteger(Number(value)) &&
@@ -13,6 +15,7 @@ function quantidadeValida(value) {
   );
 }
 
+// Lista o carrinho ativo e seus itens.
 export async function obter(req, res) {
   const idCliente = idPositivo(req.params.id_cliente);
   if (!idCliente) return res.status(400).json({ erro: "id_cliente inválido." });
@@ -22,6 +25,7 @@ export async function obter(req, res) {
   return res.json({ id_carrinho: idCarrinho, itens });
 }
 
+// Adiciona ou soma uma quantidade de produto no carrinho.
 export async function adicionar(req, res) {
   const idCliente = idPositivo(req.params.id_cliente);
   const idProduto = idPositivo(req.body?.id_produto);
@@ -42,6 +46,7 @@ export async function adicionar(req, res) {
     .json({ id_carrinho: idCarrinho, mensagem: "Item adicionado." });
 }
 
+// Define uma nova quantidade para um item existente.
 export async function alterarQuantidade(req, res) {
   const idCliente = idPositivo(req.params.id_cliente);
   const idProduto = idPositivo(req.body?.id_produto);
@@ -61,6 +66,7 @@ export async function alterarQuantidade(req, res) {
   return res.json({ mensagem: "Quantidade atualizada." });
 }
 
+// Remove um produto específico ou todos os itens do carrinho.
 export async function remover(req, res) {
   const idCliente = idPositivo(req.params.id_cliente);
   const idProduto = req.body?.id_produto

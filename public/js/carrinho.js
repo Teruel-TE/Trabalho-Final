@@ -1,3 +1,4 @@
+// Valida a sessão e prepara a interface do carrinho ao abrir a página.
 document.addEventListener('DOMContentLoaded', async () => {
     const usuario = obterUsuarioLogado();
     const token = localStorage.getItem('tokenAcesso');
@@ -31,15 +32,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('btn-checkout').addEventListener('click', () => finalizarCompra(usuario.id_cliente));
 });
 
+// Remove os dados de autenticação armazenados no navegador.
 function limparSessaoLocal() {
     localStorage.removeItem('usuarioLogado');
     localStorage.removeItem('tokenAcesso');
 }
 
+// Envia o usuário ao login, lembrando que o carrinho é a página de retorno.
 function redirecionarParaLogin() {
     window.location.href = 'login.html?retorno=carrinho.html';
 }
 
+// Recupera e valida o usuário salvo pelo processo de login.
 function obterUsuarioLogado() {
     try {
         const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
@@ -52,6 +56,7 @@ function obterUsuarioLogado() {
     }
 }
 
+// Busca os itens do carrinho ativo e atualiza a tabela.
 async function carregarCarrinho(idCliente) {
     try {
         const response = await fetch(`/api/carrinho/${idCliente}`);
@@ -66,6 +71,7 @@ async function carregarCarrinho(idCliente) {
     }
 }
 
+// Monta as linhas da tabela e calcula os valores exibidos.
 function renderizarCarrinho(idCliente, itens) {
     const corpo = document.getElementById('cart-items');
     corpo.replaceChildren();
@@ -91,6 +97,7 @@ function renderizarCarrinho(idCliente, itens) {
     document.getElementById('btn-checkout').disabled = itens.length === 0;
 }
 
+// Cria uma linha com controles para alterar ou remover um item.
 function criarLinhaItem(idCliente, item) {
     const linha = document.createElement('tr');
     const nome = document.createElement('td');
@@ -168,6 +175,7 @@ function criarLinhaItem(idCliente, item) {
     return linha;
 }
 
+// Remove o item ao chegar a zero ou altera sua quantidade.
 async function atualizarQuantidade(idCliente, item, novaQuantidade) {
     if (novaQuantidade < 1) {
         await enviarRemocao(idCliente, item.id_produto);
@@ -176,10 +184,12 @@ async function atualizarQuantidade(idCliente, item, novaQuantidade) {
     await enviarAlteracao(idCliente, item.id_produto, novaQuantidade);
 }
 
+// Formata um número no padrão de moeda brasileira.
 function formatarMoeda(valor) {
     return `R$ ${Number(valor).toFixed(2).replace('.', ',')}`;
 }
 
+// Identifica a imagem correspondente ao produto pelo nome.
 function obterImagemProduto(nome) {
     const nomeNormalizado = nome.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
     if (nomeNormalizado.includes('bequer')) return 'images/becker.webp';
@@ -188,6 +198,7 @@ function obterImagemProduto(nome) {
     return 'images/kit.jpg';
 }
 
+// Envia ao servidor uma nova quantidade para o item.
 async function enviarAlteracao(idCliente, idProduto, quantidade) {
     await enviarRequisicao(`/api/carrinho/${idCliente}`, {
         method: 'PUT',
@@ -196,6 +207,7 @@ async function enviarAlteracao(idCliente, idProduto, quantidade) {
     }, idCliente);
 }
 
+// Solicita a remoção de um produto do carrinho.
 async function enviarRemocao(idCliente, idProduto) {
     await enviarRequisicao(`/api/carrinho/${idCliente}`, {
         method: 'DELETE',
@@ -204,6 +216,7 @@ async function enviarRemocao(idCliente, idProduto) {
     }, idCliente);
 }
 
+// Executa uma alteração no carrinho e recarrega seu conteúdo.
 async function enviarRequisicao(url, options, idCliente) {
     try {
         const response = await fetch(url, options);
@@ -218,6 +231,7 @@ async function enviarRequisicao(url, options, idCliente) {
     }
 }
 
+// Envia o carrinho para criação da venda e da nota fiscal.
 async function finalizarCompra(idCliente) {
     const formaPagamento = document.getElementById('forma-pagamento').value;
     const botao = document.getElementById('btn-checkout');

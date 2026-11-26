@@ -1,5 +1,7 @@
+// Inicia o carregamento das notas fiscais quando a página estiver pronta.
 document.addEventListener('DOMContentLoaded', carregarNotasFiscais);
 
+// Solicita as notas do usuário autenticado e monta os cartões.
 async function carregarNotasFiscais() {
     const status = document.getElementById('invoice-status');
     const lista = document.getElementById('invoice-list');
@@ -40,6 +42,7 @@ async function carregarNotasFiscais() {
     }
 }
 
+// Limpa a sessão inválida e encaminha o usuário para o login.
 function solicitarLogin() {
     localStorage.removeItem('usuarioLogado');
     localStorage.removeItem('tokenAcesso');
@@ -47,6 +50,7 @@ function solicitarLogin() {
     window.location.href = 'login.html?retorno=notas-fiscais.html';
 }
 
+// Cria um cartão resumido para uma nota fiscal.
 function criarCartaoNota(nota, token, status) {
     const cartao = document.createElement('article');
     cartao.className = 'invoice-card';
@@ -86,6 +90,7 @@ function criarCartaoNota(nota, token, status) {
     return cartao;
 }
 
+// Adiciona um par de rótulo e valor ao resumo da nota.
 function adicionarCampoResumo(lista, rotulo, valor) {
     const termo = document.createElement('dt');
     termo.textContent = rotulo;
@@ -94,6 +99,7 @@ function adicionarCampoResumo(lista, rotulo, valor) {
     lista.append(termo, descricao);
 }
 
+// Abre, fecha ou consulta os itens detalhados de uma nota.
 async function alternarDetalhes(nota, token, detalhe, botao, status) {
     if (!detalhe.hidden) {
         detalhe.hidden = true;
@@ -135,6 +141,7 @@ async function alternarDetalhes(nota, token, detalhe, botao, status) {
     }
 }
 
+// Exibe a chave de acesso e os produtos de uma nota.
 function renderizarDetalhes(container, nota) {
     const chaveTitulo = document.createElement('h4');
     chaveTitulo.textContent = 'Chave de acesso';
@@ -155,6 +162,7 @@ function renderizarDetalhes(container, nota) {
     container.replaceChildren(chaveTitulo, chave, itensTitulo, itens);
 }
 
+// Converte uma data em texto no padrão de exibição brasileiro.
 function formatarData(valor) {
     if (!valor) return 'Data não disponível';
     const data = new Date(valor);
@@ -162,6 +170,7 @@ function formatarData(valor) {
     return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' }).format(data);
 }
 
+// Formata valores monetários com símbolo e separadores brasileiros.
 function formatarMoeda(valor) {
     return Number(valor).toLocaleString('pt-BR', {
         style: 'currency',

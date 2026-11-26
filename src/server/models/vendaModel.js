@@ -1,12 +1,14 @@
 import pool from "../db.js";
 import * as notaFiscalModel from "./nota_fiscalModel.js";
 
+// Monta um erro com código HTTP para a camada global tratar.
 function erro(status, mensagem) {
   const error = new Error(mensagem);
   error.status = status;
   return error;
 }
 
+// Finaliza a compra em transação: registra venda, baixa estoque e emite nota.
 export async function criar(idCliente, formaPagamento) {
   const connection = await pool.getConnection();
   try {
@@ -120,6 +122,7 @@ export async function criar(idCliente, formaPagamento) {
   }
 }
 
+// Lista o histórico de vendas com dados da nota fiscal associada.
 export async function listar(idCliente) {
   const [rows] = await pool.execute(
     `SELECT v.id_compra, v.data_compra, v.valor_total,
@@ -135,6 +138,7 @@ export async function listar(idCliente) {
   return rows;
 }
 
+// Busca uma venda específica e todos os produtos comprados.
 export async function buscarPorId(idCliente, idCompra) {
   const [vendas] = await pool.execute(
     `SELECT v.id_compra, v.id_cliente, v.data_compra, v.valor_total,

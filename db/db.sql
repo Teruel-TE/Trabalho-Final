@@ -105,3 +105,4 @@ CREATE TABLE nota_fiscal (
     CONSTRAINT fk_nf_compra FOREIGN KEY (id_compra) REFERENCES compra_venda(id_compra),
     CONSTRAINT fk_nf_cliente FOREIGN KEY (id_cliente) REFERENCES cliente_usuario(id_cliente)
 );
+-- Estrutura principal do banco de dados da loja ChemLab.

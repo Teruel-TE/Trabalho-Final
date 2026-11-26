@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { criar } from "../src/server/controllers/vendaController.js";
 
+// Garante a rejeição de pagamento inválido antes de acessar o banco.
 test("venda rejeita forma de pagamento não permitida sem acessar o banco", async () => {
   const res = {
     statusCode: 200,

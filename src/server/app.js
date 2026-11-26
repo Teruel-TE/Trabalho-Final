@@ -10,6 +10,7 @@ import produtoRoutes from "./routes/produtoRoutes.js";
 import usuarioRoutes from "./routes/usuarioRoutes.js";
 import vendaRoutes from "./routes/vendaRoutes.js";
 
+// Configuração central da aplicação HTTP e de seus middlewares.
 const app = express();
 const currentDirectory = path.dirname(fileURLToPath(import.meta.url));
 const publicDirectory = path.resolve(currentDirectory, "../../public");

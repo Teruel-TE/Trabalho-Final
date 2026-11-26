@@ -1,3 +1,4 @@
+// Extrai e valida um identificador inteiro positivo informado na URL.
 export default function validarId(req, res, next) {
   const id = Number(req.params.id);
 

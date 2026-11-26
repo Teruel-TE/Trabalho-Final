@@ -1,0 +1,1 @@
+// Arquivo reservado para um middleware futuro de tratamento centralizado de erros.

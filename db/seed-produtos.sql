@@ -67,3 +67,4 @@ WHERE NOT EXISTS (
     FROM produto AS produto_existente
     WHERE produto_existente.nome = produto.nome
 );
+-- Dados iniciais de categorias e produtos usados no catálogo.

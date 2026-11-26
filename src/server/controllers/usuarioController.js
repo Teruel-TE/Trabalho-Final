@@ -5,11 +5,13 @@ import {
   revogarSessoesUsuario,
 } from "../utils/sessoes.js";
 
+// Verifica se um campo opcional é texto e respeita o limite informado.
 function textoOpcionalValido(value, maxLength) {
   return value == null || value === "" ||
     (typeof value === "string" && value.trim().length <= maxLength);
 }
 
+// Valida campos obrigatórios antes de persistir o perfil.
 function textoObrigatorioValido(value, maxLength) {
   return (
     typeof value === "string" &&
@@ -18,6 +20,7 @@ function textoObrigatorioValido(value, maxLength) {
   );
 }
 
+// Normaliza e valida os dados enviados no cadastro ou atualização.
 function validarPerfil(dados, senhaObrigatoria = false) {
   const documento = typeof dados.cnpj_cpf === "string"
     ? dados.cnpj_cpf.replace(/\D/g, "")
@@ -76,6 +79,7 @@ function validarPerfil(dados, senhaObrigatoria = false) {
   };
 }
 
+// Cadastra um novo cliente após validar os dados recebidos.
 export async function cadastrar(req, res) {
   const dados = validarPerfil(req.body ?? {}, true);
   if (!dados) {
@@ -97,6 +101,7 @@ export async function cadastrar(req, res) {
   });
 }
 
+// Autentica o usuário e cria uma nova sessão em memória.
 export async function login(req, res) {
   const { email, senha } = req.body ?? {};
   if (
@@ -118,12 +123,14 @@ export async function login(req, res) {
   return res.json({ mensagem: "Login realizado com sucesso.", usuario, token });
 }
 
+// Retorna os dados do usuário autenticado.
 export async function obter(req, res) {
   const usuario = await usuarioModel.buscarPorId(req.idCliente);
   if (!usuario) return res.status(404).json({ erro: "Usuário não encontrado." });
   return res.json({ usuario });
 }
 
+// Atualiza o perfil e substitui as sessões existentes por uma nova.
 export async function atualizar(req, res) {
   const dados = validarPerfil(req.body ?? {});
   if (!dados) {
@@ -146,6 +153,7 @@ export async function atualizar(req, res) {
   });
 }
 
+// Exclui a conta do cliente autenticado.
 export async function excluir(req, res) {
   const excluido = await usuarioModel.excluir(req.idCliente);
   if (!excluido) {
@@ -155,6 +163,7 @@ export async function excluir(req, res) {
   return res.status(204).end();
 }
 
+// Revoga o token da sessão atual.
 export async function sair(req, res) {
   revogarSessao(req.tokenSessao);
   return res.status(204).end();

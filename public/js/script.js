@@ -1,5 +1,8 @@
+// Configuração da página inicial após o carregamento do documento.
 document.addEventListener('DOMContentLoaded', () => {
     const usuario = obterUsuarioLogado();
+
+    // Cabeçalho de public/index.html: alterna Entrar/Cadastrar, links privados e Sair.
     document.querySelectorAll('.auth-buttons').forEach(buttons => {
         buttons.hidden = Boolean(usuario);
     });
@@ -29,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Banner principal (.hero-carousel em public/index.html): alterna as imagens de fundo.
     const slides = document.querySelectorAll('.carousel-slide');
     if (slides.length > 0) {
         let currentSlide = 0;
@@ -39,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 4000); // Muda de imagem a cada 4 segundos
     }
 
+    // Navegação do cabeçalho: protege o link Carrinho e atualiza seu contador.
     const cartLink = document.getElementById('cart-link');
     if (cartLink) {
         cartLink.addEventListener('click', (e) => {
@@ -57,9 +62,11 @@ document.addEventListener('DOMContentLoaded', () => {
         atualizarContadorCarrinho();
     }
 
+    // Catálogo (#catalogo e #productGrid em public/index.html).
     carregarCatalogo();
 });
 
+// Carrega os produtos da API e os coloca na grade #productGrid da página inicial.
 async function carregarCatalogo() {
     const grid = document.getElementById('productGrid');
     const status = document.getElementById('catalog-status');
@@ -90,6 +97,7 @@ async function carregarCatalogo() {
     }
 }
 
+// Monta cada cartão do catálogo, incluindo o botão "Adicionar" ao carrinho.
 function criarCartaoProduto(product) {
     const card = document.createElement('article');
     card.className = 'product-card';
@@ -135,6 +143,7 @@ function criarCartaoProduto(product) {
     return card;
 }
 
+// Ação do botão "Adicionar" criado em cada cartão de produto.
 async function adicionarAoCarrinho(product, button) {
     const usuario = obterUsuarioLogado();
     if (!usuario) {
@@ -169,10 +178,12 @@ async function adicionarAoCarrinho(product, button) {
     }
 }
 
+// Função auxiliar usada para exibir preços nos cartões do catálogo.
 function formatarMoeda(valor) {
     return `R$ ${Number(valor).toFixed(2).replace('.', ',')}`;
 }
 
+// Função auxiliar que escolhe a imagem mostrada no cartão do produto.
 function obterImagemProduto(nome) {
     const nomeNormalizado = nome.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
     if (nomeNormalizado.includes('bequer')) return 'images/becker.webp';
@@ -181,6 +192,7 @@ function obterImagemProduto(nome) {
     return 'images/kit.jpg';
 }
 
+// Função auxiliar para verificar se há um cliente válido conectado no navegador.
 function obterUsuarioLogado() {
     try {
         const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
@@ -193,6 +205,7 @@ function obterUsuarioLogado() {
     }
 }
 
+// Função auxiliar que consulta o carrinho e atualiza #cart-count no cabeçalho.
 async function atualizarContadorCarrinho() {
     const contadorEl = document.getElementById('cart-count');
     const usuario = obterUsuarioLogado();

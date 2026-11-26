@@ -24,3 +24,4 @@ WHERE nome IN (
 );
 
 COMMIT;
+-- Comandos auxiliares para repor ou ajustar o estoque dos produtos.

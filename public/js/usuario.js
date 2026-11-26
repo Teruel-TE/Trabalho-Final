@@ -1,7 +1,9 @@
+// Obtém os campos usados no cadastro e conecta seus eventos.
 const campoDocumento = document.getElementById('cadastro-cnpj-cpf');
 const cadastroForm = document.getElementById('cadastro-form');
 
 if (campoDocumento && cadastroForm) {
+    // Aplica máscara dinâmica de CPF ou CNPJ enquanto o usuário digita.
     campoDocumento.addEventListener('input', () => {
         const numeros = campoDocumento.value.replace(/\D/g, '').slice(0, 14);
         if (numeros.length <= 11) {
@@ -19,6 +21,7 @@ if (campoDocumento && cadastroForm) {
             .replace(/^(\d{2})\.(\d{3})\.(\d{3})\/(\d{4})(\d{1,2})$/, '$1.$2.$3/$4-$5');
     });
 
+    // Reúne os dados do formulário e envia uma requisição de cadastro.
     cadastroForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -61,6 +64,7 @@ if (campoDocumento && cadastroForm) {
 
 const loginForm = document.getElementById('login-form');
 if (loginForm) {
+    // Envia as credenciais e salva a sessão retornada pelo servidor.
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
